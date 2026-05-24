@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Athlete Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --white:#fff;--off:#f6f6f5;--light:#eeede9;--mid:#ccccc8;
+  --border:#e2e2de;--subtle:#a8a8a2;--text:#111;--secondary:#555;--black:#000;
+  --font:'Poppins',sans-serif;
+}
+body{background:var(--off);color:var(--text);font-family:var(--font);min-height:100vh;font-size:14px;line-height:1.5}
+
+/* NAV */
+nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:54px;position:sticky;top:0;z-index:100}
+.logo{font-size:17px;font-weight:700;color:var(--black);letter-spacing:-.4px}
+.logo span{font-weight:400;font-style:italic;color:var(--subtle)}
+.tabs{display:flex;gap:1px;background:var(--border);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.tab{background:var(--off);border:none;color:var(--subtle);font-family:var(--font);font-size:11px;font-weight:600;padding:6px 13px;cursor:pointer;transition:all .15s;letter-spacing:.02em;white-space:nowrap}
+.tab:hover{color:var(--text);background:var(--light)}
+.tab.active{background:var(--white);color:var(--black)}
+
+main{max-width:660px;margin:0 auto;padding:24px 16px}
+.section{display:none}.section.active{display:block}
+
+/* PAGE HEADER */
+.page-header{margin-bottom:20px}
+.page-title{font-size:22px;font-weight:700;color:var(--black);letter-spacing:-.4px;margin-bottom:2px}
+.page-sub{font-size:12px;color:var(--subtle);font-weight:400}
+
+/* GROUP CARD */
+.group{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.group-header{padding:14px 18px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.group-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--subtle)}
+.group-badge{font-size:10px;color:var(--subtle);font-weight:500}
+.group-body{padding:18px}
+.group-flush{padding:0}
+
+/* QUICK BUTTONS */
+.quick-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border)}
+.qbtn{background:var(--white);border:none;padding:13px 6px;cursor:pointer;transition:background .1s;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:var(--font)}
+.qbtn:hover{background:var(--off)}
+.qbtn-icon{font-size:16px;line-height:1}
+.qbtn-label{font-size:9px;font-weight:600;color:var(--subtle);letter-spacing:.05em;text-transform:uppercase}
+.qbtn.mic-btn{background:var(--off)}
+.qbtn.mic-btn.recording{background:#111;animation:pulse-bg 1s ease-in-out infinite}
+.qbtn.mic-btn.recording .qbtn-label{color:#fff}
+@keyframes pulse-bg{0%,100%{background:#111}50%{background:#333}}
+
+/* CHAT */
+.chat-window{min-height:180px;max-height:280px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--off);border-bottom:1px solid var(--border)}
+.msg{max-width:84%;display:flex;flex-direction:column;gap:2px}
+.msg.ai{align-self:flex-start}
+.msg.user{align-self:flex-end}
+.msg-lbl{font-size:9px;font-weight:600;color:var(--subtle);letter-spacing:.07em;text-transform:uppercase}
+.msg.user .msg-lbl{text-align:right}
+.bubble{padding:9px 13px;font-size:12.5px;line-height:1.55}
+.msg.ai .bubble{background:var(--white);border:1px solid var(--border);border-radius:3px 11px 11px 11px;color:var(--text)}
+.msg.user .bubble{background:var(--black);color:#fff;border-radius:11px 3px 11px 11px}
+.voice-transcript{font-style:italic;opacity:.7}
+
+.chat-footer{padding:10px 14px;background:var(--white);display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;background:var(--off);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:var(--font);font-size:13px;color:var(--text);outline:none;resize:none;height:40px;transition:all .15s}
+.chat-input::placeholder{color:var(--subtle)}
+.chat-input:focus{border-color:var(--black);background:var(--white);height:76px}
+.send-btn{background:var(--black);color:#fff;border:none;border-radius:8px;padding:0 18px;height:40px;font-family:var(--font);font-weight:600;font-size:12px;cursor:pointer;transition:opacity .15s;letter-spacing:.02em}
+.send-btn:hover{opacity:.75}
+.send-btn:disabled{background:var(--light);color:var(--subtle);cursor:not-allowed}
+
+/* STATS */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--border)}
+.stat-cell{background:var(--white);padding:14px 16px}
+.stat-val{font-size:22px;font-weight:700;color:var(--black);line-height:1;letter-spacing:-.5px}
+.stat-lbl{font-size:9px;font-weight:600;color:var(--subtle);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+
+/* LOG HISTORY */
+.log-list{list-style:none}
+.log-item{display:grid;grid-template-columns:58px 56px 1fr;gap:10px;align-items:start;padding:13px 18px;border-bottom:1px solid var(--border)}
+.log-item:last-child{border-bottom:none}
+.log-date{font-size:11px;color:var(--subtle);line-height:1.4}
+.log-date strong{display:block;font-size:11px;font-weight:600;color:var(--text)}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid}
+.pill-lift{color:#222;background:#f0f0ef;border-color:#ddd}
+.pill-food{color:#222;background:#f4f4f0;border-color:#ddd}
+.pill-run{color:#222;background:#f0f0f0;border-color:#ddd}
+.pill-weight{color:#222;background:#fafaf9;border-color:#e4e4e4}
+.pill-steps{color:#222;background:#f8f8f7;border-color:#e4e4e0}
+.pill-sleep{color:#222;background:#f2f2f8;border-color:#ddd}
+.log-sum{font-size:12.5px;color:var(--text);padding-top:1px;line-height:1.4}
+
+/* BAR CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:7px;height:80px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height .35s ease;background:var(--black)}
+.bar.empty{background:var(--light)}
+.bar-lbl{font-size:8px;font-weight:600;color:var(--subtle);text-transform:uppercase;letter-spacing:.04em}
+
+/* DATA TABLE */
+.dtable{width:100%;border-collapse:collapse;font-size:12.5px}
+.dtable th{text-align:left;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle);padding:9px 18px;background:var(--off);border-bottom:1px solid var(--border)}
+.dtable td{padding:11px 18px;border-bottom:1px solid var(--border);color:var(--text)}
+.dtable tr:last-child td{border-bottom:none}
+.dtable td:first-child{font-weight:600;text-transform:capitalize}
+
+/* SLEEP SECTION */
+.sleep-input-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.field-label{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--subtle);margin-bottom:5px}
+.field-input{width:100%;background:var(--off);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:var(--font);font-size:14px;font-weight:600;color:var(--text);outline:none;transition:border .15s}
+.field-input:focus{border-color:var(--black);background:var(--white)}
+.field-select{appearance:none;-webkit-appearance:none;cursor:pointer}
+.save-btn{width:100%;background:var(--black);color:#fff;border:none;border-radius:8px;padding:11px;font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer;transition:opacity .15s;letter-spacing:.02em}
+.save-btn:hover{opacity:.8}
+.sleep-log-row{display:grid;grid-template-columns:70px 1fr 1fr 80px;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border);font-size:12.5px;align-items:center}
+.sleep-log-row:last-child{border-bottom:none}
+.sleep-log-row.header{background:var(--off);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle);padding:8px 18px}
+.quality-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.q1{background:#ddd}.q2{background:#bbb}.q3{background:#888}.q4{background:#555}.q5{background:#111}
+.sleep-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-bottom:0}
+.avg-badge{font-size:11px;font-weight:500;color:var(--subtle);margin-top:6px}
+
+/* THINKING */
+.thinking-wrap{display:inline-flex;align-items:center;gap:4px}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--mid);animation:blink 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:.2}50%{opacity:1}}
+
+/* MIC STATUS BAR */
+.mic-status{font-size:11px;color:var(--subtle);padding:6px 14px;background:var(--off);border-top:1px solid var(--border);display:none;align-items:center;gap:6px;font-weight:500}
+.mic-status.show{display:flex}
+.rec-dot{width:6px;height:6px;border-radius:50%;background:#111;animation:blink 1s infinite}
+
+.empty{padding:32px 18px;text-align:center;color:var(--subtle);font-size:12.5px;line-height:1.8}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--mid)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Athlete <span>tracker</span></div>
+  <div class="tabs">
+    <button class="tab active" onclick="showSection('log',this)">Log</button>
+    <button class="tab" onclick="showSection('sleep',this)">Sleep</button>
+    <button class="tab" onclick="showSection('history',this)">History</button>
+    <button class="tab" onclick="showSection('stats',this)">Stats</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- LOG -->
+<div id="sec-log" class="section active">
+  <div class="page-header">
+    <div class="page-title">Today's log</div>
+    <div class="page-sub" id="todayDate"></div>
+  </div>
+
+  <div class="group">
+    <div class="quick-grid">
+      <button class="qbtn" onclick="prefill('Log a lift — ')"><span class="qbtn-icon">🏋️</span><span class="qbtn-label">Lift</span></button>
+      <button class="qbtn" onclick="prefill('I ate — ')"><span class="qbtn-icon">🍚</span><span class="qbtn-label">Food</span></button>
+      <button class="qbtn" onclick="prefill('Just ran — ')"><span class="qbtn-icon">🏃</span><span class="qbtn-label">Run</span></button>
+      <button class="qbtn" onclick="prefill('My weight today is ')"><span class="qbtn-icon">⚖️</span><span class="qbtn-label">Weight</span></button>
+      <button class="qbtn" onclick="prefill('Steps today: ')"><span class="qbtn-icon">👟</span><span class="qbtn-label">Steps</span></button>
+      <button class="qbtn mic-btn" id="micBtn" onclick="toggleMic()"><span class="qbtn-icon" id="micIcon">🎙️</span><span class="qbtn-label" id="micLabel">Voice</span></button>
+    </div>
+    <div class="mic-status" id="micStatus"><span class="rec-dot"></span><span id="micStatusText">Listening…</span></div>
+    <div class="chat-window" id="chatWindow"></div>
+    <div class="chat-footer">
+      <textarea class="chat-input" id="chatInput" placeholder="What did you do, eat, or weigh?" onkeydown="handleKey(event)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <div class="group" id="todaySummary" style="display:none">
+    <div class="group-header"><span class="group-title">Today at a glance</span></div>
+    <div class="group-flush">
+      <div class="stat-row" id="todayStats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLEEP -->
+<div id="sec-sleep" class="section">
+  <div class="page-header">
+    <div class="page-title">Sleep</div>
+    <div class="page-sub">Target: 8–9h. You're currently averaging <span id="sleepAvgText">—</span></div>
+  </div>
+
+  <div class="group">
+    <div class="group-header"><span class="group-title">Log last night</span></div>
+    <div class="group-body">
+      <div class="sleep-input-grid">
+        <div>
+          <div class="field-label">Bedtime</div>
+          <input type="time" class="field-input" id="sleepBed" value="23:00">
+        </div>
+        <div>
+          <div class="field-label">Wake time</div>
+          <input type="time" class="field-input" id="sleepWake" value="06:30">
+        </div>
+        <div>
+          <div class="field-label">Quality</div>
+          <select class="field-input field-select" id="sleepQuality">
+            <option value="1">1 — Terrible</option>
+            <option value="2">2 — Poor</option>
+            <option value="3" selected>3 — Okay</option>
+            <option value="4">4 — Good</option>
+            <option value="5">5 — Great</option>
+          </select>
+        </div>
+        <div>
+          <div class="field-label">Date</div>
+          <input type="date" class="field-input" id="sleepDate">
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveSleep()">Save sleep entry</button>
+    </div>
+  </div>
+
+  <div class="group" id="sleepStatsGroup" style="display:none">
+    <div class="group-header"><span class="group-title">7-day average</span></div>
+    <div class="group-flush">
+      <div class="stat-row sleep-stat-row" id="sleepStats"></div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-header"><span class="group-title">Sleep log</span><span class="group-badge" id="sleepCount"></span></div>
+    <div class="group-flush" id="sleepLogContent">
+      <div class="empty">No sleep logged yet.<br>Add your first entry above.</div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="sec-history" class="section">
+  <div class="page-header">
+    <div class="page-title">History</div>
+    <div class="page-sub">All entries, newest first</div>
+  </div>
+  <div class="group">
+    <div class="group-header"><span class="group-title">All logs</span><span class="group-badge" id="logCount"></span></div>
+    <div class="group-flush" id="historyContent">
+      <div class="empty">Nothing logged yet.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div id="sec-stats" class="section">
+  <div class="page-header">
+    <div class="page-title">Stats</div>
+    <div class="page-sub">Last 7 days + recent bests</div>
+  </div>
+  <div class="group">
+    <div class="group-header"><span class="group-title">Bodyweight — 7 days</span></div>
+    <div class="group-body"><div class="bar-chart" id="weightChart"></div></div>
+  </div>
+  <div class="group">
+    <div class="group-header"><span class="group-title">Estimated calories — 7 days</span></div>
+    <div class="group-body"><div class="bar-chart" id="calChart"></div></div>
+  </div>
+  <div class="group">
+    <div class="group-header"><span class="group-title">Sleep duration — 7 days</span></div>
+    <div class="group-body"><div class="bar-chart" id="sleepChart"></div></div>
+  </div>
+  <div class="group">
+    <div class="group-header"><span class="group-title">Lifts — most recent</span></div>
+    <div class="group-flush" id="liftStats"><div class="empty">Log lifts to see them here.</div></div>
+  </div>
+  <div class="group">
+    <div class="group-header"><span class="group-title">Run log</span></div>
+    <div class="group-flush" id="runStats"><div class="empty">Log runs to see your history.</div></div>
+  </div>
+</div>
+</main>
+
+<script>
+// ── DATA ──
+const PROFILE=`You are a fitness tracking assistant for a 17-year-old male athlete.
+Profile: 173cm, ~65.1kg. Gym 4x/week Push/Pull x2, home gym, hypertrophy goal. Lifts: Bench 95kg, Squat 100kg, Deadlift 120kg, OHP 50kg. Run: 5K 22:30, 2.4km 10min, longest 21.1km. Track CCA. Ironman long-term goal.
+Return ONLY valid JSON, no markdown:
+{"message":"1-2 sentence reply","type":"lift|food|run|weight|steps|mixed","data":{see below},"insight":"short coaching note or null"}
+data shapes:
+lift: exercise,weight_kg,sets,reps(str),rpe(num|null),rir(num|null)
+food: items:[{name,cal_est,protein_est}],total_cal,total_protein
+run: distance_km,duration_min(null ok),pace_per_km(null ok),type(easy|tempo|intervals|long|race|unknown)
+weight: weight_kg
+steps: steps`;
+
+let logs=JSON.parse(localStorage.getItem('athl_logs')||'[]');
+let sleepLogs=JSON.parse(localStorage.getItem('athl_sleep')||'[]');
+let chatHistory=[];
+const save=()=>{localStorage.setItem('athl_logs',JSON.stringify(logs));localStorage.setItem('athl_sleep',JSON.stringify(sleepLogs))};
+
+// ── INIT ──
+document.getElementById('todayDate').textContent=new Date().toLocaleDateString('en-SG',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+document.getElementById('sleepDate').value=new Date().toISOString().split('T')[0];
+
+// ── NAV ──
+function showSection(s,btn){
+  document.querySelectorAll('.section').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
+  document.getElementById('sec-'+s).classList.add('active');
+  btn.classList.add('active');
+  if(s==='history')renderHistory();
+  if(s==='stats')renderStats();
+  if(s==='sleep')renderSleep();
+}
+
+// ── LOG ──
+function prefill(t){const i=document.getElementById('chatInput');i.value=t;i.focus();i.style.height='76px'}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}}
+function addMsg(role,text,isVoice){
+  const w=document.getElementById('chatWindow');
+  const d=document.createElement('div');d.className='msg '+role;
+  const lb=document.createElement('div');lb.className='msg-lbl';lb.textContent=role==='ai'?'Athlete':isVoice?'You (voice)':'You';
+  const b=document.createElement('div');b.className='bubble';
+  if(isVoice)b.innerHTML=`<span class="voice-transcript">"${text}"</span>`;else b.textContent=text;
+  d.appendChild(lb);d.appendChild(b);w.appendChild(d);w.scrollTop=w.scrollHeight;
+}
+function addThinking(){
+  const w=document.getElementById('chatWindow');
+  const d=document.createElement('div');d.className='msg ai';d.id='thinking';
+  const lb=document.createElement('div');lb.className='msg-lbl';lb.textContent='Athlete';
+  const b=document.createElement('div');b.className='bubble';
+  b.innerHTML='<span class="thinking-wrap"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>';
+  d.appendChild(lb);d.appendChild(b);w.appendChild(d);w.scrollTop=w.scrollHeight;
+}
+function removeThinking(){const t=document.getElementById('thinking');if(t)t.remove()}
+
+async function sendMessage(textOverride,isVoice){
+  const inp=document.getElementById('chatInput');
+  const text=(textOverride||inp.value).trim();if(!text)return;
+  const btn=document.getElementById('sendBtn');btn.disabled=true;
+  if(!textOverride){inp.value='';inp.style.height='40px';}
+  addMsg('user',text,isVoice);chatHistory.push({role:'user',content:text});addThinking();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:PROFILE,messages:chatHistory})});
+    const data=await res.json();removeThinking();
+    const raw=data.content.map(c=>c.text||'').join('');
+    let parsed;
+    try{parsed=JSON.parse(raw.replace(/```json|```/g,'').trim())}
+    catch(e){addMsg('ai',"Couldn't parse that — try more detail.");btn.disabled=false;return}
+    chatHistory.push({role:'assistant',content:raw});
+    addMsg('ai',parsed.message+(parsed.insight?' — '+parsed.insight:''));
+    logs.unshift({id:Date.now(),ts:new Date().toISOString(),date:new Date().toISOString().split('T')[0],type:parsed.type,data:parsed.data,raw:text});
+    save();updateTodaySummary();
+  }catch(e){removeThinking();addMsg('ai','Connection issue — try again.')}
+  btn.disabled=false;
+}
+
+function updateTodaySummary(){
+  const td=new Date().toISOString().split('T')[0];
+  const tl=logs.filter(l=>l.date===td);if(!tl.length)return;
+  document.getElementById('todaySummary').style.display='block';
+  let cal=0,pro=0,bw=null,steps=0,lifts=0,runs=0;
+  tl.forEach(l=>{
+    if(l.type==='food'&&l.data){cal+=l.data.total_cal||0;pro+=l.data.total_protein||0}
+    if(l.type==='weight'&&l.data)bw=l.data.weight_kg;
+    if(l.type==='steps'&&l.data)steps=Math.max(steps,l.data.steps||0);
+    if(l.type==='lift')lifts++;
+    if(l.type==='run')runs++;
+  });
+  const items=[];
+  if(bw)items.push({v:bw+'kg',l:'Bodyweight'});
+  if(cal>0)items.push({v:cal,l:'kcal est.'});
+  if(pro>0)items.push({v:pro+'g',l:'Protein'});
+  if(steps>0)items.push({v:steps.toLocaleString(),l:'Steps'});
+  if(lifts>0)items.push({v:lifts,l:'Lift sets'});
+  if(runs>0)items.push({v:runs,l:'Runs'});
+  document.getElementById('todayStats').innerHTML=items.map(i=>`<div class="stat-cell"><div class="stat-val">${i.v}</div><div class="stat-lbl">${i.l}</div></div>`).join('');
+}
+
+// ── VOICE ──
+let recognition=null;let isRecording=false;
+function toggleMic(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    alert('Voice input not supported in this browser. Try Chrome.');return;
+  }
+  if(isRecording){stopMic();return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.lang='en-SG';recognition.continuous=false;recognition.interimResults=true;
+  recognition.onstart=()=>{
+    isRecording=true;
+    document.getElementById('micBtn').classList.add('recording');
+    document.getElementById('micIcon').textContent='⏹️';
+    document.getElementById('micLabel').textContent='Stop';
+    document.getElementById('micStatus').classList.add('show');
+    document.getElementById('micStatusText').textContent='Listening…';
+  };
+  recognition.onresult=(e)=>{
+    let interim='';let final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal)final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    document.getElementById('micStatusText').textContent=interim||final||'Listening…';
+    if(final){
+      document.getElementById('chatInput').value=final;
+      document.getElementById('micStatusText').textContent='Got it — sending…';
+    }
+  };
+  recognition.onend=()=>{
+    const txt=document.getElementById('chatInput').value.trim();
+    stopMic();
+    if(txt){setTimeout(()=>sendMessage(txt,true),300);}
+  };
+  recognition.onerror=(e)=>{
+    stopMic();
+    if(e.error!=='no-speech')addMsg('ai','Mic error: '+e.error+'. Try again.');
+  };
+  recognition.start();
+}
+function stopMic(){
+  isRecording=false;
+  if(recognition){try{recognition.stop()}catch(e){}}
+  document.getElementById('micBtn').classList.remove('recording');
+  document.getElementById('micIcon').textContent='🎙️';
+  document.getElementById('micLabel').textContent='Voice';
+  document.getElementById('micStatus').classList.remove('show');
+}
+
+// ── SLEEP ──
+function calcDuration(bed,wake){
+  const [bh,bm]=bed.split(':').map(Number);
+  const [wh,wm]=wake.split(':').map(Number);
+  let mins=(wh*60+wm)-(bh*60+bm);
+  if(mins<0)mins+=1440;
+  return Math.round(mins/6)/10;
+}
+function saveSleep(){
+  const bed=document.getElementById('sleepBed').value;
+  const wake=document.getElementById('sleepWake').value;
+  const quality=parseInt(document.getElementById('sleepQuality').value);
+  const date=document.getElementById('sleepDate').value;
+  if(!bed||!wake||!date){alert('Fill in all fields.');return;}
+  const dur=calcDuration(bed,wake);
+  sleepLogs.unshift({id:Date.now(),date,bed,wake,duration:dur,quality});
+  save();renderSleep();
+  // reset date to today
+  document.getElementById('sleepDate').value=new Date().toISOString().split('T')[0];
+  // confirmation
+  const btn=document.querySelector('.save-btn');btn.textContent='Saved ✓';
+  setTimeout(()=>btn.textContent='Save sleep entry',1800);
+}
+function renderSleep(){
+  const last7=getLast7Dates();
+  const recent=sleepLogs.filter(s=>last7.includes(s.date));
+  document.getElementById('sleepCount').textContent=sleepLogs.length+' entries';
+  // avg
+  if(recent.length){
+    const avgDur=(recent.reduce((a,s)=>a+s.duration,0)/recent.length).toFixed(1);
+    const avgQ=(recent.reduce((a,s)=>a+s.quality,0)/recent.length).toFixed(1);
+    document.getElementById('sleepAvgText').textContent=avgDur+'h (quality '+avgQ+'/5)';
+    document.getElementById('sleepStatsGroup').style.display='block';
+    document.getElementById('sleepStats').innerHTML=
+      `<div class="stat-cell"><div class="stat-val">${avgDur}h</div><div class="stat-lbl">Avg duration</div></div>`+
+      `<div class="stat-cell"><div class="stat-val">${avgQ}</div><div class="stat-lbl">Avg quality</div></div>`+
+      `<div class="stat-cell"><div class="stat-val">${recent.length}</div><div class="stat-lbl">Days logged</div></div>`;
+  }else{document.getElementById('sleepAvgText').textContent='—';}
+  // log table
+  const el=document.getElementById('sleepLogContent');
+  if(!sleepLogs.length){el.innerHTML='<div class="empty">No sleep logged yet.</div>';return;}
+  let html='<div class="sleep-log-row header"><div>Date</div><div>Duration</div><div>Times</div><div>Quality</div></div>';
+  sleepLogs.slice(0,14).forEach(s=>{
+    const ds=new Date(s.date).toLocaleDateString('en-SG',{day:'numeric',month:'short'});
+    const qColors=['','#ddd','#bbb','#888','#555','#111'];
+    html+=`<div class="sleep-log-row">
+      <div style="font-weight:600;font-size:12px">${ds}</div>
+      <div style="font-weight:700">${s.duration}h</div>
+      <div style="color:var(--subtle);font-size:11px">${s.bed} → ${s.wake}</div>
+      <div><span class="quality-dot" style="background:${qColors[s.quality]}"></span>${s.quality}/5</div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+// ── HISTORY ──
+function renderHistory(){
+  const el=document.getElementById('historyContent');
+  document.getElementById('logCount').textContent=logs.length+' entries';
+  if(!logs.length){el.innerHTML='<div class="empty">Nothing logged yet.</div>';return;}
+  let html='<ul class="log-list">';
+  logs.forEach(l=>{
+    const d=new Date(l.ts);
+    const ds=d.toLocaleDateString('en-SG',{day:'numeric',month:'short'});
+    const ts=d.toLocaleTimeString('en-SG',{hour:'2-digit',minute:'2-digit'});
+    let sum='';
+    if(l.type==='lift'&&l.data)sum=`${l.data.exercise||'Lift'} — ${l.data.weight_kg}kg × ${l.data.reps}, ${l.data.sets} sets${l.data.rpe?' · RPE '+l.data.rpe:''}`;
+    else if(l.type==='food'&&l.data)sum=`~${l.data.total_cal} kcal · ${l.data.total_protein}g protein`;
+    else if(l.type==='run'&&l.data)sum=`${l.data.distance_km}km${l.data.pace_per_km?' @ '+l.data.pace_per_km+'/km':''} · ${l.data.type}`;
+    else if(l.type==='weight'&&l.data)sum=`${l.data.weight_kg} kg`;
+    else if(l.type==='steps'&&l.data)sum=`${(l.data.steps||0).toLocaleString()} steps`;
+    else sum=l.raw.slice(0,70)+(l.raw.length>70?'…':'');
+    html+=`<li class="log-item"><div class="log-date"><strong>${ds}</strong>${ts}</div><div><span class="pill pill-${l.type}">${l.type}</span></div><div class="log-sum">${sum}</div></li>`;
+  });
+  html+='</ul>';el.innerHTML=html;
+}
+
+// ── STATS ──
+function getLast7Dates(){
+  return Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));return d.toISOString().split('T')[0]});
+}
+function renderBars(id,vals,maxV,minV){
+  const el=document.getElementById(id);
+  const labels=getLast7Dates().map(d=>new Date(d).toLocaleDateString('en-SG',{weekday:'short'}));
+  if(!vals.some(v=>v>0)){el.innerHTML='<div class="empty" style="width:100%;padding:12px 0;font-size:11px">No data yet</div>';return;}
+  el.innerHTML=vals.map((v,i)=>{
+    const h=v?Math.max(Math.round(((v-minV)/(maxV-minV+0.01))*68)+4,4):2;
+    return`<div class="bar-col"><div class="bar${v?'':' empty'}" style="height:${h}px"></div><div class="bar-lbl">${labels[i]}</div></div>`;
+  }).join('');
+}
+function renderStats(){
+  const dates=getLast7Dates();
+  const ws=dates.map(d=>{const e=logs.find(l=>l.date===d&&l.type==='weight');return e?.data?.weight_kg||0});
+  const cs=dates.map(d=>logs.filter(l=>l.date===d&&l.type==='food').reduce((s,l)=>s+(l.data?.total_cal||0),0));
+  const ss=dates.map(d=>{const e=sleepLogs.find(s=>s.date===d);return e?.duration||0});
+  const wv=ws.filter(Boolean);
+  renderBars('weightChart',ws,wv.length?Math.max(...wv):70,wv.length?Math.min(...wv)-0.5:60);
+  renderBars('calChart',cs,Math.max(...cs,1),0);
+  renderBars('sleepChart',ss,Math.max(...ss,9),0);
+  // lifts
+  const lm={};
+  logs.filter(l=>l.type==='lift'&&l.data?.exercise).forEach(l=>{const ex=l.data.exercise.toLowerCase();if(!lm[ex]||new Date(l.ts)>new Date(lm[ex].ts))lm[ex]={...l.data,ts:l.ts}});
+  const lks=Object.keys(lm);
+  document.getElementById('liftStats').innerHTML=lks.length?
+    `<table class="dtable"><thead><tr><th>Exercise</th><th>Weight</th><th>Sets × Reps</th><th>RPE</th></tr></thead><tbody>`+
+    lks.map(k=>{const e=lm[k];return`<tr><td>${k}</td><td>${e.weight_kg} kg</td><td>${e.sets} × ${e.reps}</td><td>${e.rpe||'—'}</td></tr>`}).join('')+
+    `</tbody></table>`
+    :'<div class="empty">Log lifts to see them here.</div>';
+  // runs
+  const runs=logs.filter(l=>l.type==='run'&&l.data);
+  document.getElementById('runStats').innerHTML=runs.length?
+    `<table class="dtable"><thead><tr><th>Date</th><th>Distance</th><th>Pace</th><th>Type</th></tr></thead><tbody>`+
+    runs.slice(0,10).map(l=>{const ds=new Date(l.ts).toLocaleDateString('en-SG',{day:'numeric',month:'short'});return`<tr><td>${ds}</td><td>${l.data.distance_km} km</td><td>${l.data.pace_per_km||'—'}/km</td><td style="text-transform:capitalize">${l.data.type}</td></tr>`}).join('')+
+    `</tbody></table>`
+    :'<div class="empty">Log runs to see your history.</div>';
+}
+
+// ── BOOT ──
+window.addEventListener('load',()=>{
+  addMsg('ai','Ready. Tap a button, speak with 🎙️, or just type what you did.');
+  updateTodaySummary();
+});
+</script>
+</body>
+</html>
